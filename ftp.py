@@ -27,10 +27,6 @@ host = 'ftp.3700.network'
 server = (host, port)
 BUFFER_SIZE = 4096
 
-fs = open("toServer.txt", "rb")
-a = fs.read()
-print(a)
-
 class FTPProject:
     def __init__(self, username, password) -> None:
         self.username = username
@@ -41,9 +37,6 @@ class FTPProject:
         self.regexPASV = ''
         self.regexAddress = ''
         self.regexPort = ''
-
-        
-        # self.file = fs.read(1024)
 
         print(self.user, self.pwd)
     
@@ -133,30 +126,26 @@ class FTPProject:
         data_channel.close()
         print(answer)
 
-    """
-    # works - not needed
-    def makeFile(self, file_path: str):
-        mkDIR = "STOR %s\r\n" % (file_path)
-        control_connection.sendall(mkDIR.encode())
-        answer = control_connection.recv(BUFFER_SIZE).decode('utf-8')
-        data_channel.close()
-        print(answer)
-
-        if '553' in answer:
-            print('Could not create directory created')
-    """
-
     # works
-    def uploadFile(self, server_filepath = None, local_filepath = None):
-        control_connection.send(("STOR %s\r\n" % server_filepath).encode())
-
+    def uploadFile(self, server_filepath: str, local_filepath: str):
+        try:
+            control_connection.send(("STOR %s\r\n" % server_filepath).encode())
+        except:
+            print('ERROR: Could not send store request')
+            quit()
+        
         try:
             file = open(local_filepath, "rb")
-            data = file.read()
-            data_channel.sendall(data)
-            file.close()
+
+            # CHECK IF THE FILE EXISTS 
+            if (file):
+                data = file.read()
+                data_channel.sendall(data)
+                file.close()
+            else:
+                print("File not found :(")
         except:
-            print(f'Error writing to {local_filepath}')
+            print(f'Error writing to {local_filepath}: Make sure file exists')
         
         data_channel.close()
 
@@ -180,8 +169,8 @@ class FTPProject:
             file.write(res)
             file.close()
         except:
-            print(f'Error writing to {local_path}')
-        
+            print(f'Error downloading to {local_path}')
+
         data_channel.close()
         
 
@@ -198,7 +187,6 @@ print('Connected to data channel')
 #########################################################
 
 '''
-
 # ls, mkdir, rm, rmdir, cp, and mv
 operation = args.operation
 
@@ -222,6 +210,6 @@ else:
 
 '''
 
-ftp3700.uploadFile('/toServer2.txt', 'fakeFile.txt')
+ftp3700.uploadFile('/serverFile2.txt', 'vdfjkcveksujferssref')
 data_channel.close()
 
